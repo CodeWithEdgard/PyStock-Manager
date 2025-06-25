@@ -8,6 +8,6 @@ engine = create_engine(
   SQLALQUEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
-sessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
