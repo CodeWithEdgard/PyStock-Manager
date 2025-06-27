@@ -23,3 +23,11 @@ def create_new_product(product: schemas.ProductCreate, db: Session = Depends(get
 def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
   products = crud.get_products(db, skip=skip, limit=limit)
   return products
+
+@app.get("/products/{product_id}", response_model=schemas.Product)
+def read_product_by_id(product_id: int, db: Session = Depends(get_db)):
+  db_product = crud.get_product_by_id(db=db, product_id= product_id)
+  
+  if db_product is None:
+    raise HTTPException(status_code=404, detail="Product not found")
+  return db_product
