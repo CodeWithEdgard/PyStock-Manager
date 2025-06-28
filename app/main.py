@@ -3,10 +3,17 @@ from sqlalchemy.orm import Session
 from . import crud, models, schemas
 from . import models
 from .database import SessionLocal, engine
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+@app.get("/", response_class=FileResponse)
+async def read_index():
+  return "static/index.html"
 
 def get_db():
   db = SessionLocal()
