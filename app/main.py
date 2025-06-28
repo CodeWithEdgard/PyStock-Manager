@@ -39,3 +39,11 @@ def update_existing_product(product_id: int, product: schemas.ProductCreate, db:
   if update_product is None:
     raise HTTPException(status_code=404, detail="Product not found")
   return update_product
+
+@app.delete("/products/{product_id}", response_model=schemas.Product)
+def delete_existing_product(product_id: int, db: Session = Depends(get_db)):
+  deleted_product = crud.delete_product(db=db, product_id=product_id)
+  
+  if deleted_product is None:
+    raise HTTPException(status_code=404, detail="Product not found")
+  return deleted_product
