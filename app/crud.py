@@ -20,3 +20,17 @@ def get_products(db: Session, skip: int = 0, limit: int = 100):
 
 def get_product_by_id(db: Session, product_id: int):
   return db.query(models.Product).filter(models.Product.id == product_id).first()
+
+def update_product(db: Session, product_id: int, product_data: schemas.ProductCreate):
+  db_product = db.query(models.Product).filter(models.Product.id == product_id).first()
+  
+  if db_product:
+    db_product.name = product_data.name
+    db_product.description = product_data.description
+    db_product.price = product_data.price
+    db_product.quantity_in_stock = product_data.quantity_in_stock
+    
+  db.commit()
+  db.refresh(db_product)
+  
+  return db_product

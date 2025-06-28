@@ -31,3 +31,11 @@ def read_product_by_id(product_id: int, db: Session = Depends(get_db)):
   if db_product is None:
     raise HTTPException(status_code=404, detail="Product not found")
   return db_product
+
+@app.put("/products/{product_id}", response_model=schemas.Product)
+def update_existing_product(product_id: int, product: schemas.ProductCreate, db: Session = Depends(get_db)):
+  update_product = crud.update_product(db=db, product_id=product_id, product_data=product)
+  
+  if update_product is None:
+    raise HTTPException(status_code=404, detail="Product not found")
+  return update_product
