@@ -5,10 +5,26 @@ from . import models
 from .database import SessionLocal, engine
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+origins = [
+    # Lista de endereços que podem acessar nossa API.
+    # Por enquanto, só os de desenvolvimento local.
+    "http://localhost",
+    "http://127.0.0.1:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"], # Permite todos os métodos: GET, POST, PUT, DELETE
+    allow_headers=["*"], # Permite todos os cabeçalhos
+)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/", response_class=FileResponse)
