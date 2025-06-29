@@ -28,21 +28,24 @@ function renderProducts(products) {
     return;
   }
   products.forEach(product => {
-  const row = document.createElement('tr');
-  row.innerHTML = `
-    <td>${product.id}</td>
-    <td>${product.name}</td>
-    <td>${product.description}</td>
-    <td>${product.price.toFixed(2)}</td>
-    <td>${product.quantity_in_stock}</td>
-    <td>
-        <button class="action-button edit-button">✏️</button>
-        <button class="action-button delete-button">🗑️</button>
-    </td>
-  `;
-  
-  productTableBody.appendChild(row);
-});
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.id}</td>
+            <td>${product.name}</td>
+            <td>${product.description}</td>
+            <td>R$ ${product.price.toFixed(2)}</td>
+            <td>${product.quantity_in_stock}</td>
+            <td>
+                <button class="action-button edit-button" data-product-id="${product.id}" title="Editar Produto">
+                <i class="fas fa-pencil-alt"></i>
+                </button>
+                <button class="action-button delete-button" data-product-id="${product.id}" title="Deletar Produto">
+                <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        `;
+        productTableBody.appendChild(row);
+    });
 }
 
 async function createProduct(productData) {
@@ -67,6 +70,34 @@ async function createProduct(productData) {
   }
 }
 
+async function deleteProduct(productId) {
+  const confirmDelete = confirm(`Tem certeza que deseja deletar o produto com ID ${productId} ?`);
+  
+  if(!confirmDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/products/${productId}` , {
+      method: 'DELETE'
+    });
+  
+  if (!response.ok) {
+    if(response.status === 404) {
+      alert('Erro: Produto não encontrado.')
+    } else {
+      throw new Error('A resposta da rede não foi ok')
+    }
+  } else {
+    console.log(`Produto com ID ${productId} deletado com sucesso.`)
+    fetchProducts();
+  }
+} catch (error) {
+  console.error('Houve um problema ao deletar o produto:', error);
+  alert('Erro ao deletar o produto.');
+} 
+} 
+
 document.addEventListener('DOMContentLoaded', () => {
   fetchProducts();
 });
@@ -90,4 +121,22 @@ productForm.addEventListener('submit', (event) => {
 
     // Chama a função para criar o produto com os dados capturados
     createProduct(productData);
+});
+
+productTableBody.addEventListener('click', (event) => {
+    // .closest() encontra o ancestral mais próximo que corresponde ao seletor.
+    // Isso garante que, mesmo se o usuário clicar no ícone <i>, nós peguemos o <button> correto.
+    const deleteButton = event.target.closest('.delete-button');
+    const editButton = event.target.closest('.edit-button');
+
+    if (deleteButton) {
+        const productId = deleteButton.dataset.productId; 
+        deleteProduct(productId);
+    }
+    
+    if (editButton) {
+        const productId = editButton.dataset.productId;
+        // Futuramente, aqui chamaremos a função handleEdit(productId)
+        alert(`Você clicou em editar o produto ID: ${productId}. A função de edição será implementada em breve!`);
+    }
 });
