@@ -98,45 +98,105 @@ async function deleteProduct(productId) {
 } 
 } 
 
+function populateFormForEdit(product) {
+
+  document.getElementById('product-id').value = product.id;
+  document.getElementById('name').value = product.name;
+  document.getElementById('description').value = product.description;
+  document.getElementById('price').value = product.price;
+  document.getElementById('quantity').value = product.quantity_in_stock;
+
+  // Muda o texto do botão e o título do formulário
+  const submitButton = productForm.querySelector('button[type="submit"]');
+  submitButton.textContent = 'Salvar Alterações';
+  document.getElementById('form-section').querySelector('h2').textContent = `Editando Produto ID: ${product.id}`
+
+}
+
+async function updateProduct (productId, productData) {
+  try {
+    const response = await fetch(`${API_URL}/products/${productId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData)
+    });
+
+    if (!response.ok) {
+            throw new Error('A resposta da rede não foi ok');
+        }
+
+        // Limpa o formulário, reseta o título/botão, e atualiza a lista
+        productForm.reset();
+        document.getElementById('form-section').querySelector('h2').textContent = 'Adicionar Novo Produto';
+        productForm.querySelector('button[type="submit"]').textContent = 'Adicionar Produto';
+        fetchProducts();
+
+    } catch (error) {
+        console.error('Houve um problema ao atualizar o produto:', error);
+        alert('Erro ao atualizar o produto.');
+    }
+  }
+
 document.addEventListener('DOMContentLoaded', () => {
   fetchProducts();
 });
 
 // Escuta o evento 'submit' do formulário de produto
 productForm.addEventListener('submit', (event) => {
-    // Previne o comportamento padrão do formulário, que é recarregar a página
     event.preventDefault();
 
-    // Cria um objeto FormData para pegar facilmente os valores dos campos
     const formData = new FormData(productForm);
+    const productId = formData.get('product-id'); // Pega o ID do campo escondido
 
-    // Converte os dados do formulário em um objeto simples de JavaScript
     const productData = {
         name: formData.get('name'),
         description: formData.get('description'),
-        // Converte os valores para números, pois eles vêm como string do formulário
         price: parseFloat(formData.get('price')),
         quantity_in_stock: parseInt(formData.get('quantity_in_stock'), 10)
     };
 
-    // Chama a função para criar o produto com os dados capturados
-    createProduct(productData);
+    // Se houver um ID, estamos editando. Se não, estamos criando.
+    if (productId) {
+        updateProduct(productId, productData);
+    } else {
+        createProduct(productData);
+    }
 });
 
-productTableBody.addEventListener('click', (event) => {
-    // .closest() encontra o ancestral mais próximo que corresponde ao seletor.
-    // Isso garante que, mesmo se o usuário clicar no ícone <i>, nós peguemos o <button> correto.
-    const deleteButton = event.target.closest('.delete-button');
-    const editButton = event.target.closest('.edit-button');
-
-    if (deleteButton) {
-        const productId = deleteButton.dataset.productId; 
-        deleteProduct(productId);
-    }
+// Adiciona um listener para toda a tabela usando Delegação de Eventos
+productTableBody.addEventListener('click', async (event) => {
     
+    // --- LÓGICA DE DELEÇÃO (usando closest) ---
+    const deleteButton = event.target.closest('.delete-button');
+    if (deleteButton) {
+        const productId = deleteButton.getAttribute('data-product-id');
+        deleteProduct(productId);
+        return; // Sai da função após lidar com o clique
+    }
+
+    // --- LÓGICA DE EDIÇÃO (usando closest) ---
+    const editButton = event.target.closest('.edit-button');
     if (editButton) {
-        const productId = editButton.dataset.productId;
-        // Futuramente, aqui chamaremos a função handleEdit(productId)
-        alert(`Você clicou em editar o produto ID: ${productId}. A função de edição será implementada em breve!`);
+        const productId = editButton.getAttribute('data-product-id');
+
+        if (!productId) {
+            console.error('ERRO: Não foi possível obter o product-id do botão de edição!');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_URL}/products/${productId}`);
+            if (!response.ok) {
+                throw new Error('Produto não encontrado para edição.');
+            }
+            const product = await response.json();
+            populateFormForEdit(product);
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('ERRO ao buscar produto para edição:', error);
+            alert('Não foi possível carregar os dados do produto para edição.');
+        }
     }
 });
