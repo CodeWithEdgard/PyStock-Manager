@@ -2,7 +2,7 @@
 const productTableBody = document.getElementById('product-table-body');
 const productForm = document.getElementById('product-form');
 
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = 'https://pystock-manager-api.onrender.com';
 
 // Função assíncrona para buscar todos os produtos da API.
 async function fetchProducts() {

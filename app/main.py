@@ -16,6 +16,7 @@ origins = [
     # Por enquanto, só os de desenvolvimento local.
     "http://localhost",
     "http://127.0.0.1:8000",
+    "https://pystock-manager-api.onrender.com"
 ]
 
 app.add_middleware(
